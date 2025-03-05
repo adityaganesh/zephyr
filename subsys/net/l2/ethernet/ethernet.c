@@ -171,6 +171,7 @@ static inline bool eth_is_vlan_tag_stripped(struct net_if *iface)
 	return (net_eth_get_hw_capabilities(iface) & ETHERNET_HW_VLAN_TAG_STRIP);
 }
 
+#if defined(CONFIG_NET_IPV4) || defined(CONFIG_NET_IPV6)
 /* Drop packet if it has broadcast destination MAC address but the IP
  * address is not multicast or broadcast address. See RFC 1122 ch 3.3.6
  */
@@ -178,6 +179,10 @@ static inline
 enum net_verdict ethernet_check_ipv4_bcast_addr(struct net_pkt *pkt,
 						struct net_eth_hdr *hdr)
 {
+	if (IS_ENABLED(CONFIG_NET_L2_ETHERNET_ACCEPT_MISMATCH_L3_L2_ADDR)) {
+		return NET_OK;
+	}
+
 	if (net_eth_is_addr_broadcast(&hdr->dst) &&
 	    !(net_ipv4_is_addr_mcast((struct in_addr *)NET_IPV4_HDR(pkt)->dst) ||
 	      net_ipv4_is_addr_bcast(net_pkt_iface(pkt),
@@ -187,6 +192,7 @@ enum net_verdict ethernet_check_ipv4_bcast_addr(struct net_pkt *pkt,
 
 	return NET_OK;
 }
+#endif
 
 #if defined(CONFIG_NET_NATIVE_IP) && !defined(CONFIG_NET_RAW_MODE)
 static void ethernet_mcast_monitor_cb(struct net_if *iface, const struct net_addr *addr,

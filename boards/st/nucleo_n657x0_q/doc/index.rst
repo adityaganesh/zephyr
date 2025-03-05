@@ -60,27 +60,7 @@ For more details, please refer to:
 Supported Features
 ==================
 
-The Zephyr ``nucleo_n657x0_q`` board supports the following hardware features:
-
-+-----------+------------+-------------------------------------+
-| Interface | Controller | Driver/Component                    |
-+===========+============+=====================================+
-| CLOCK     | on-chip    | reset and clock control             |
-+-----------+------------+-------------------------------------+
-| GPIO      | on-chip    | gpio                                |
-+-----------+------------+-------------------------------------+
-| NVIC      | on-chip    | nested vector interrupt controller  |
-+-----------+------------+-------------------------------------+
-| UART      | on-chip    | serial port-polling;                |
-|           |            | serial port-interrupt               |
-+-----------+------------+-------------------------------------+
-
-
-Other hardware features are not yet supported on this Zephyr port.
-
-The default configuration can be found in the defconfig file:
-:zephyr_file:`boards/st/nucleo_n657x0_q/nucleo_n657x0_q_defconfig`
-
+.. zephyr:board-supported-hw::
 
 Connections and IOs
 ===================
@@ -93,10 +73,24 @@ For more details please refer to `NUCLEO-N657X0-Q User Manual`_.
 Default Zephyr Peripheral Mapping:
 ----------------------------------
 
+- ADC1_INP10 : PA9
+- ADC1_INP11 : PA10
+- FDCAN1_TX : PH2
+- FDCAN1_RX : PD0
+- I2C1_SCL : PH9
+- I2C1_SDA : PC1
+- I2C4_SCL : PE13
+- I2C4_SDA : PE14
 - LD1 : PO1
 - LD2 : PG10
+- SPI5_SCK : PE15
+- SPI5_MOSI : PG2
+- SPI5_MISO : PG1
+- SPI5_NSS : PA3
 - USART_1_TX : PE5
 - USART_1_RX : PE6
+- USART_3_TX : PD8
+- USART_3_RX : PD9
 
 System Clock
 ------------
@@ -125,6 +119,13 @@ Flashing or loading
 The board is configured to be programmed using west `STM32CubeProgrammer`_ runner,
 so its :ref:`installation <stm32cubeprog-flash-host-tools>` is needed.
 Version 2.18.0 or later of `STM32CubeProgrammer`_ is required.
+
+.. note::
+   Firmware is run in secure mode of execution, which requires a signature.
+   After build, the build system  will automatically generate a signed version of the
+   binary using `STM32CubeProgrammer`_ utility ``STM32_SigningTool_CLI``.
+   This utility is installed along with `STM32CubeProgrammer`_, but make sure it is
+   available in your ``PATH`` variable.
 
 To program the board, there are two options:
 
