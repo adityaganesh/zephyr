@@ -302,17 +302,20 @@ typedef int (*video_api_dequeue_t)(const struct device *dev, enum video_endpoint
 typedef int (*video_api_flush_t)(const struct device *dev, enum video_endpoint_id ep, bool cancel);
 
 /**
- * @typedef video_api_set_stream_t
- * @brief Start or stop streaming on the video device.
+ * @typedef video_api_stream_start_t
+ * @brief Start the capture or output process.
  *
- * Start (enable == true) or stop (enable == false) streaming on the video device.
- *
- * @param dev Pointer to the device structure.
- * @param enable If true, start streaming, otherwise stop streaming.
- *
- * @retval 0 on success, otherwise a negative errno code.
+ * See video_stream_start() for argument descriptions.
  */
-typedef int (*video_api_set_stream_t)(const struct device *dev, bool enable);
+typedef int (*video_api_stream_start_t)(const struct device *dev);
+
+/**
+ * @typedef video_api_stream_stop_t
+ * @brief Stop the capture or output process.
+ *
+ * See video_stream_stop() for argument descriptions.
+ */
+typedef int (*video_api_stream_stop_t)(const struct device *dev);
 
 /**
  * @typedef video_api_set_ctrl_t
@@ -352,7 +355,8 @@ __subsystem struct video_driver_api {
 	/* mandatory callbacks */
 	video_api_set_format_t set_format;
 	video_api_get_format_t get_format;
-	video_api_set_stream_t set_stream;
+	video_api_stream_start_t stream_start;
+	video_api_stream_stop_t stream_stop;
 	video_api_get_caps_t get_caps;
 	/* optional callbacks */
 	video_api_enqueue_t enqueue;
@@ -594,11 +598,11 @@ static inline int video_stream_start(const struct device *dev)
 {
 	const struct video_driver_api *api = (const struct video_driver_api *)dev->api;
 
-	if (api->set_stream == NULL) {
+	if (api->stream_start == NULL) {
 		return -ENOSYS;
 	}
 
-	return api->set_stream(dev, true);
+	return api->stream_start(dev);
 }
 
 /**
@@ -615,11 +619,11 @@ static inline int video_stream_stop(const struct device *dev)
 	const struct video_driver_api *api = (const struct video_driver_api *)dev->api;
 	int ret;
 
-	if (api->set_stream == NULL) {
+	if (api->stream_stop == NULL) {
 		return -ENOSYS;
 	}
 
-	ret = api->set_stream(dev, false);
+	ret = api->stream_stop(dev);
 	video_flush(dev, VIDEO_EP_ALL, true);
 
 	return ret;
