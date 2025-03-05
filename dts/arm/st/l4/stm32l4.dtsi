@@ -512,6 +512,8 @@
 				reg = <0x5>;
 			};
 		};
+
+		
 	};
 
 	die_temp: dietemp {
