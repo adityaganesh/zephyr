@@ -735,6 +735,8 @@ static int spi_stm32_configure(const struct device *dev,
 		}
 	}
 
+
+
 	if (config->operation & SPI_OP_MODE_SLAVE) {
 		LL_SPI_SetMode(spi, LL_SPI_MODE_SLAVE);
 	} else {
@@ -746,6 +748,8 @@ static int spi_stm32_configure(const struct device *dev,
 	} else {
 		LL_SPI_SetDataWidth(spi, LL_SPI_DATAWIDTH_16BIT);
 	}
+
+	LL_SPI_EnableNSSPulseMgt(spi);
 
 #if DT_HAS_COMPAT_STATUS_OKAY(st_stm32h7_spi)
 	LL_SPI_SetMasterSSIdleness(spi, cfg->mssi_clocks);
