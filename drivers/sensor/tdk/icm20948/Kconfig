@@ -1,0 +1,12 @@
+# ICM20948 Nine-Axis Motion Tracking device configuration options
+
+# Copyright (c) 2021 Nordic Semiconductor ASA
+# SPDX-License-Identifier: Apache-2.0
+
+config ICM20948
+	bool "ICM20948 Nine-Axis Motion Tracking Device"
+	default y
+	depends on DT_HAS_INVENSENSE_ICM20948_ENABLED
+	select I2C
+	help
+	  Enable driver for ICM20948 I2C-based nine-axis motion tracking device.
