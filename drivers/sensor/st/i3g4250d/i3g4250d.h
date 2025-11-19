@@ -38,6 +38,12 @@ struct i3g4250d_device_config {
 		const struct spi_dt_spec spi;
 	#endif
 	} stmemsc_cfg;
+	bool trig_enabled;
+	#ifdef CONFIG_I3G4250D_TRIGGER
+	struct gpio_dt_spec int1_gpio;
+	struct gpio_dt_spec int2_gpio;
+	uint8_t drdy_pulsed;
+	uint8_t drdy_pin;
 	#endif
 };
 

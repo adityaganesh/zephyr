@@ -13,3 +13,12 @@ config I3G4250D
 	select USE_STDC_I3G4250D
 	help
 	  Enable driver for I3G4250D SPI-based three-axis motion tracking device.
+
+config I3G4250D_STREAM
+	bool "Use hardware FIFO to stream data"
+	select I3G4250D_TRIGGER
+	default y
+	depends on SPI_RTIO
+	depends on SENSOR_ASYNC_API
+	help
+	  Use this config option to enable streaming sensor data via RTIO subsystem.

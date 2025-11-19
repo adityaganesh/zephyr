@@ -218,6 +218,18 @@ static int i3g4250d_init(const struct device *dev)
 				POST_KERNEL,	\
 				CONFIG_SENSOR_INIT_PRIORITY,	\
 				&i3g4250d_driver_api);
+
+#ifdef CONFIG_I3G4250D_TRIGGER
+#define I3G4250D_CFG_IRQ(inst)					\
+	.trig_enabled = true,						\
+	.int1_gpio = GPIO_DT_SPEC_INST_GET_OR(inst, int1_gpios, { 0 }),	\
+	.int2_gpio = GPIO_DT_SPEC_INST_GET_OR(inst, int2_gpios, { 0 }),	\
+	.drdy_pulsed = DT_INST_PROP(inst, drdy_pulsed),                 \
+	.drdy_pin = DT_INST_PROP(inst, drdy_pin)
+#else
+#define I3G4250D_CFG_IRQ(inst)
+#endif /* CONFIG_LSM6DSV16X_TRIGGER */
+
 #define I3G4250D_CONFIG_SPI(inst)	\
 	{	\
 		STMEMSC_CTX_SPI(&i3g4250d_device_config_##inst.stmemsc_cfg),	\
@@ -228,6 +240,9 @@ static int i3g4250d_init(const struct device *dev)
 				SPI_MODE_CPHA | SPI_WORD_SET(8) |	\
 				SPI_LINES_SINGLE),	\
 		},	\
+		IF_ENABLED(UTIL_OR(DT_INST_NODE_HAS_PROP(inst, int1_gpios),\
+			DT_INST_NODE_HAS_PROP(inst, int2_gpios)),\
+			(I3G4250D_CFG_IRQ(inst)))
 	}
 
 #define I3G4250D_DEFINE_SPI(inst)	\
