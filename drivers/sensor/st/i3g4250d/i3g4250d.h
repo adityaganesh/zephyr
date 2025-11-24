@@ -34,10 +34,11 @@ struct i3g4250d_device_config {
 	stmdev_ctx_t ctx;
 	#if I3G4250D_ANY_INST_ON_BUS_STATUS_OKAY(spi)
 	union {
-	#if I3G4250D_ANY_INST_ON_BUS_STATUS_OKAY(spi)
+
 		const struct spi_dt_spec spi;
-	#endif
+
 	} stmemsc_cfg;
+	#endif
 	bool trig_enabled;
 	#ifdef CONFIG_I3G4250D_TRIGGER
 	struct gpio_dt_spec int1_gpio;
@@ -50,6 +51,8 @@ struct i3g4250d_device_config {
 /* sensor data */
 struct i3g4250d_data {
 	int16_t angular_rate[3];
+	struct gpio_dt_spec *drdy_gpio;
+	struct gpio_callback gpio_cb;
 };
 
 #endif /* __SENSOR_I3G4250D__ */

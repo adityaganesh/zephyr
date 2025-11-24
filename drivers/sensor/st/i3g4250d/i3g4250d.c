@@ -185,6 +185,8 @@ static int i3g4250d_init(const struct device *dev)
 		return -EIO;
 	}
 
+
+
 	/* Configure filtering chain -  Gyroscope - High Pass */
 	ret = i3g4250d_filter_path_set(ctx, I3G4250D_LPF1_HP_ON_OUT);
 	if (ret != 0) {
@@ -205,6 +207,18 @@ static int i3g4250d_init(const struct device *dev)
 		return ret;
 	}
 
+	#ifdef CONFIG_I3G4250D_TRIGGER
+	if (cfg->trig_enabled) {
+		ret = i3g4250d_init_interrupt(dev);
+		if (ret < 0) {
+			LOG_ERR("Failed to initialize interrupts.");
+			return ret;
+		}
+	}
+	#endif
+
+	LOG_INF("Initialization done.");
+
 	return 0;
 }
 
@@ -224,7 +238,6 @@ static int i3g4250d_init(const struct device *dev)
 	.trig_enabled = true,						\
 	.int1_gpio = GPIO_DT_SPEC_INST_GET_OR(inst, int1_gpios, { 0 }),	\
 	.int2_gpio = GPIO_DT_SPEC_INST_GET_OR(inst, int2_gpios, { 0 }),	\
-	.drdy_pulsed = DT_INST_PROP(inst, drdy_pulsed),                 \
 	.drdy_pin = DT_INST_PROP(inst, drdy_pin)
 #else
 #define I3G4250D_CFG_IRQ(inst)
@@ -242,7 +255,7 @@ static int i3g4250d_init(const struct device *dev)
 		},	\
 		IF_ENABLED(UTIL_OR(DT_INST_NODE_HAS_PROP(inst, int1_gpios),\
 			DT_INST_NODE_HAS_PROP(inst, int2_gpios)),\
-			(I3G4250D_CFG_IRQ(inst)))
+			(I3G4250D_CFG_IRQ(inst)))\
 	}
 
 #define I3G4250D_DEFINE_SPI(inst)	\

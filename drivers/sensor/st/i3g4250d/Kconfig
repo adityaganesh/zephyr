@@ -22,3 +22,6 @@ config I3G4250D_STREAM
 	depends on SENSOR_ASYNC_API
 	help
 	  Use this config option to enable streaming sensor data via RTIO subsystem.
+
+config I3G4250D_TRIGGER
+	bool "Enable trigger"
