@@ -12,5 +12,40 @@ menuconfig ICM20948
 	help
 	  Enable driver for ICM20948 I2C-based six-axis motion tracking device.
 
+if ICM20948
+
+
+config ICM20948_TRIGGER_GLOBAL_THREAD
+	bool "Use global thread"
+	depends on GPIO
+	depends on $(dt_compat_any_has_prop,$(DT_COMPAT_INVENSENSE_MPU6050),int-gpios)
+	select ICM20948_TRIGGER
+
+config ICM20948_TRIGGER_OWN_THREAD
+	bool "Use own thread"
+	depends on GPIO
+	depends on $(dt_compat_any_has_prop,$(DT_COMPAT_INVENSENSE_MPU6050),int-gpios)
+	select ICM20948_TRIGGER
+
 config ICM20948_TRIGGER
-	bool
+    bool "Enable ICM20948 trigger support"
+    help
+      Enable sensor trigger mode (DRDY interrupt, motion interrupt, etc.)
+      Requires the device tree node to define an interrupt.
+
+config ICM20948_THREAD_PRIORITY
+	int "Thread priority"
+	depends on ICM20948_TRIGGER
+	default 10
+	help
+	  Priority of thread used by the driver to handle interrupts.
+
+config ICM20948_THREAD_STACK_SIZE
+	int "Thread stack size"
+	depends on ICM20948_TRIGGER
+	default 1024
+	help
+	  Stack size of thread used by the driver to handle interrupts.
+
+
+endif # ICM20948

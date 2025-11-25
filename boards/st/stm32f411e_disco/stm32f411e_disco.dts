@@ -146,6 +146,8 @@
 	icm20948@87 {
 		compatible = "invensense,icm20948";
 		reg = <0x68>;
+
+		int-gpios = <&gpioc 1 GPIO_ACTIVE_HIGH>;
         /* Accelerometer configuration */
         accel-fs = <2>;       /* Full scale in g: 2, 4, 8, 16 */
         accel-hz = "102.3";   /* Sampling frequency in Hz */

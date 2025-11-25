@@ -11,6 +11,7 @@
 #include "zephyr/sys/util.h"
 #include "stdint.h"
 #include "zephyr/drivers/i2c.h"
+#include "zephyr/drivers/gpio.h"
 #include "zephyr/drivers/sensor.h"
 #include "zephyr/init.h"
 #include "zephyr/logging/log.h"
@@ -587,6 +588,13 @@ static int icm20948_init(const struct device *dev)
 		return err;
 	}
 
+	#ifdef CONFIG_ICM20948_TRIGGER
+	err = icm20948_init_interrupt(dev);
+	if (err) {
+		return err;
+	}
+	#endif /* CONFIG_ICM20948_TRIGGER */
+
 	LOG_INF("Device %s initialized", dev->name);
 
 	return 0;
@@ -605,9 +613,9 @@ static int icm20948_init(const struct device *dev)
 		.gyro_hz = DT_INST_ENUM_IDX(inst, gyro_hz),                                        \
 		.gyro_fchoice = DT_INST_ENUM_IDX(inst, gyro_fchoice),                              \
 		.gyro_lpf = DT_INST_ENUM_IDX(inst, gyro_lpf),                                      \
-		.mag_freq = DT_INST_ENUM_IDX(inst, mag_freq)                                    \
+		.mag_freq = DT_INST_ENUM_IDX(inst, mag_freq),                                    \
 		IF_ENABLED(CONFIG_ICM20948_TRIGGER,				\
-		  (.int_pin = GPIO_DT_SPEC_INST_GET(inst, irq_gpios)))	\
+		  (.int_pin = GPIO_DT_SPEC_INST_GET(inst, int_gpios)))	\
     };                                                                                               \
 	SENSOR_DEVICE_DT_INST_DEFINE(inst, icm20948_init, NULL, &icm20948_data_##inst,             \
 				     &icm20948_config_##inst, POST_KERNEL,                         \

@@ -156,6 +156,15 @@ struct icm20948_data {
 	int16_t magn_scale_x;
 	int16_t magn_scale_y;
 	int16_t magn_scale_z;
+
+	#ifdef CONFIG_ICM20948_TRIGGER
+		const struct device *dev;
+		struct gpio_callback gpio_cb;
+	#endif
+
+	K_KERNEL_STACK_MEMBER(thread_stack, CONFIG_ICM20948_THREAD_STACK_SIZE);
+	struct k_thread thread;
+	struct k_sem gpio_sem;
 };
 
 struct icm20948_config {
