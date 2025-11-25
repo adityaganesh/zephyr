@@ -169,6 +169,9 @@ struct icm20948_config {
 	uint8_t gyro_fchoice;
 	uint8_t gyro_lpf;
 	uint8_t mag_freq;
+	#ifdef CONFIG_ICM20948_TRIGGER
+	const struct gpio_dt_spec int_pin;
+	#endif /* CONFIG_MPU9250_TRIGGER */
 };
 
 enum icm20948_accel_fs_sel {

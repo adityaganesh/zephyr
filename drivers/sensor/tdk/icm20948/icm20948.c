@@ -48,12 +48,12 @@ static int icm20948_get_device_id(const struct device *dev, uint8_t *device_id)
     const struct icm20948_config *cfg = dev->config;
 
     /* WHO_AM_I is in USER BANK 0 */
-    icm20948_bank_select(dev, 0);
-    // if (err) {
-    //     return err;
-    // }
+    int err = icm20948_bank_select(dev, 0);
+    if (err) {
+        return err;
+    }
 
-    int err = i2c_reg_read_byte_dt(&cfg->i2c,
+    err = i2c_reg_read_byte_dt(&cfg->i2c,
                                ICM20948_REG_WHO_AM_I,
                                device_id);
     if (err) {
@@ -605,8 +605,10 @@ static int icm20948_init(const struct device *dev)
 		.gyro_hz = DT_INST_ENUM_IDX(inst, gyro_hz),                                        \
 		.gyro_fchoice = DT_INST_ENUM_IDX(inst, gyro_fchoice),                              \
 		.gyro_lpf = DT_INST_ENUM_IDX(inst, gyro_lpf),                                      \
-		.mag_freq = DT_INST_ENUM_IDX(inst, mag_freq)};                                     \
-                                                                                                   \
+		.mag_freq = DT_INST_ENUM_IDX(inst, mag_freq)                                    \
+		IF_ENABLED(CONFIG_ICM20948_TRIGGER,				\
+		  (.int_pin = GPIO_DT_SPEC_INST_GET(inst, irq_gpios)))	\
+    };                                                                                               \
 	SENSOR_DEVICE_DT_INST_DEFINE(inst, icm20948_init, NULL, &icm20948_data_##inst,             \
 				     &icm20948_config_##inst, POST_KERNEL,                         \
 				     CONFIG_SENSOR_INIT_PRIORITY, &icm20948_driver_api);

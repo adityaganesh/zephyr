@@ -11,3 +11,6 @@ menuconfig ICM20948
 	select I2C
 	help
 	  Enable driver for ICM20948 I2C-based six-axis motion tracking device.
+
+config ICM20948_TRIGGER
+	bool
