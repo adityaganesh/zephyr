@@ -49,9 +49,6 @@ static int icm20948_get_device_id(const struct device *dev, uint8_t *device_id)
 
     /* WHO_AM_I is in USER BANK 0 */
     icm20948_bank_select(dev, 0);
-    // if (err) {
-    //     return err;
-    // }
 
     int err = i2c_reg_read_byte_dt(&cfg->i2c,
                                ICM20948_REG_WHO_AM_I,
