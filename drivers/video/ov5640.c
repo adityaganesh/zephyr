@@ -395,7 +395,7 @@ static const struct video_reg16 init_params_dvp[] = {
 	{0x4050, 0x6e},
 	{0x4051, 0x8f},
 	{0x3017, 0xff},
-	{0x3018, 0xff},
+	{0x3018, 0xf3},
 	{0x302c, 0x02},
 	{0x3108, 0x01},
 	{0x3630, 0x2e},
@@ -430,9 +430,9 @@ static const struct video_reg16 init_params_dvp[] = {
 	{0x3813, 0x06},
 	{0x3814, 0x31},
 	{0x3815, 0x31},
-	{0x3034, 0x1a},
-	{0x3035, 0x11},
-	{0x3036, 0x64},
+	{0x3034, 0x18},
+	{0x3035, 0x41},
+	{0x3036, 0x60},
 	{0x3037, 0x13},
 	{0x3038, 0x00},
 	{0x3039, 0x00},
@@ -675,12 +675,80 @@ static int ov5640_set_fmt_dvp(const struct ov5640_config *cfg)
 		return ret;
 	}
 
-	ret = video_modify_cci_reg(&cfg->i2c, OV5640_REG8(SYS_CLK_ENABLE02_REG), 0x28, 0x00);
+	ret = video_modify_cci_reg(&cfg->i2c, OV5640_REG8(SC_PLL_CTRL0_REG), 0xFF, 0x18);
 
-	if (ret) {
-		LOG_ERR("Unable to configure REG: %d on DVP", SYS_CLK_ENABLE02_REG);
-		return ret;
-	}
+    if (ret) {
+        LOG_ERR("Unable to configure PCLK divider on DVP");
+        return ret;
+    }
+
+	ret = video_modify_cci_reg(&cfg->i2c, OV5640_REG8(SC_PLL_CTRL1_REG), 0xFF, 0x41);
+
+    if (ret) {
+        LOG_ERR("Unable to configure PCLK divider on DVP");
+        return ret;
+    }
+
+	ret = video_modify_cci_reg(&cfg->i2c, OV5640_REG8(SC_PLL_CTRL2_REG), 0xFF, 0x60);
+
+    if (ret) {
+        LOG_ERR("Unable to configure PCLK multiplier on DVP");
+        return ret;
+    }
+
+	ret = video_modify_cci_reg(&cfg->i2c, OV5640_REG8(SC_PLL_CTRL3_REG), 0xFF, 0x13);
+
+    if (ret) {
+        LOG_ERR("Unable to configure PCLK multiplier on DVP");
+        return ret;
+    }
+
+	ret = video_modify_cci_reg(&cfg->i2c, OV5640_REG8(0x3108), 0xFF, 0x01);
+
+    if (ret) {
+        LOG_ERR("Unable to configure PCLK multiplier on DVP");
+        return ret;
+    }
+
+	/* * 0x3036 (SC_PLL_CTRL2_REG): PLL1 Multiplier.
+	* Setting to 0x30 (48 decimal).
+	* PLL1 = (24MHz / pre-divider) * 48.
+	*/
+	// ret = video_modify_cci_reg(&cfg->i2c, OV5640_REG8(0x3036), 0xFF, 0x30);
+	// if (ret) {
+	// 	LOG_ERR("Unable to configure PCLK multiplier");
+	// 	return ret;
+	// }
+
+	// /* * 0x3035 (SC_PLL_CTRL1_REG): System Clock Divider and P_DIV.
+	// * Bit [7:4] = System Clock Divider (set to 1)
+	// * Bit [3:0] = P_DIV (set to 2 for YUV/RGB)
+	// * Value 0x12
+	// */
+	// ret = video_modify_cci_reg(&cfg->i2c, OV5640_REG8(0x3035), 0xFF, 0x12);
+	// if (ret) {
+	// 	LOG_ERR("Unable to configure PCLK divider");
+	// 	return ret;
+	// }
+
+	// /* * 0x3108 (SYSTEM_SYS_ROOT_DIV): Root and PCLK Dividers.
+	// * Let's set PCLK_DIV to 2 to be very safe.
+	// * Value 0x10 (Bits 5:4 are PCLK_DIV)
+	// */
+	// ret = video_modify_cci_reg(&cfg->i2c, OV5640_REG8(0x3108), 0x30, 0x11);
+	// if (ret) {
+	// 	LOG_ERR("Unable to configure Root Divider");
+	// 	return ret;
+	// }
+
+	// ret = video_modify_cci_reg(&cfg->i2c, OV5640_REG8(SYS_CLK_ENABLE02_REG), 0x28, 0x00);
+
+	// if (ret) {
+	// 	LOG_ERR("Unable to configure REG: %d on DVP", SYS_CLK_ENABLE02_REG);
+	// 	return ret;
+	// }
+
+
 
 	return 0;
 }

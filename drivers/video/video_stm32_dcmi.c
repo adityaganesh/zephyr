@@ -45,6 +45,7 @@ struct video_stm32_dcmi_data {
 	struct k_fifo fifo_in;
 	struct k_fifo fifo_out;
 	struct video_buffer *vbuf;
+	int time_delta;
 };
 
 struct video_stm32_dcmi_config {
@@ -101,7 +102,7 @@ void HAL_DCMI_FrameEventCallback(DCMI_HandleTypeDef *hdcmi)
 
 	vbuf->timestamp = k_uptime_get_32();
 	memcpy(vbuf->buffer, dev_data->vbuf->buffer, vbuf->bytesused);
-
+	dev_data->time_delta = k_uptime_get_32() - dev_data->vbuf->timestamp;
 	k_fifo_put(&dev_data->fifo_out, vbuf);
 
 resume:
