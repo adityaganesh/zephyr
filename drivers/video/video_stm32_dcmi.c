@@ -102,7 +102,8 @@ void HAL_DCMI_FrameEventCallback(DCMI_HandleTypeDef *hdcmi)
 
 	vbuf->timestamp = k_uptime_get_32();
 	memcpy(vbuf->buffer, dev_data->vbuf->buffer, vbuf->bytesused);
-	dev_data->time_delta = k_uptime_get_32() - dev_data->vbuf->timestamp;
+	dev_data->time_delta = k_uptime_get_32() - vbuf->timestamp;
+	LOG_INF("Frame captured time delta: %u ms", dev_data->time_delta);
 	k_fifo_put(&dev_data->fifo_out, vbuf);
 
 resume:

@@ -180,6 +180,7 @@ static void video_shell_print_buffer(const struct shell *sh, struct video_buffer
 		    /* Bytes */ byte_offset, byte_offset + bytes_in_buf, fmt->height * fmt->pitch,
 		    /* Lines */ line_offset, line_offset + lines_in_buf, fmt->height,
 		    /* Rate */ frmrate_fps, frmival_msec);
+	shell_hexdump(sh, vbuf->buffer, vbuf->bytesused);
 }
 
 static int cmd_video_capture(const struct shell *sh, size_t argc, char **argv)
