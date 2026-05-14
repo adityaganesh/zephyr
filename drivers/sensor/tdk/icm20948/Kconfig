@@ -1,0 +1,13 @@
+# ICM20948
+#
+# Copyright (c) 2025 Aditya Ganesh
+#
+# SPDX-License-Identifier: Apache-2.0
+
+menuconfig ICM20948
+	bool "ICM20948 Six-Axis Motion Tracking Device"
+	default y
+	depends on DT_HAS_INVENSENSE_ICM20948_ENABLED
+	select I2C
+	help
+	  Enable driver for ICM20948 I2C-based six-axis motion tracking device.
