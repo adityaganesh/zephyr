@@ -46,7 +46,6 @@ static void icm20948_thread_cb(const struct device *dev)
 
 	if (ret) {
 		LOG_ERR("data not ready to read.\n");
-		return false;
 	}
 
     LOG_INF("Interrupt received from pin %d", cfg->int_pin.pin);
@@ -94,9 +93,12 @@ int icm20948_init_interrupt(const struct device *dev)
         return -EIO;
     }
 
-    	/* enable data ready interrupt */
+	/*Interrupt pin configuration
+
+
+	*/
 	if (i2c_reg_write_byte_dt(&cfg->i2c, ICM20948_REG_INT_PIN_CFG,
-				  0x30) < 0) {
+				  ICM20948_INT1_LATCH_EN|ICM20948_INT1_ANYRD_2CLEAR|ICM20948_BYPASS_EN) < 0) {
 		LOG_ERR("Failed to enable data ready interrupt.");
 		return -EIO;
 	}
