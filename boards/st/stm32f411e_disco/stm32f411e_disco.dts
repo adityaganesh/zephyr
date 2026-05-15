@@ -143,6 +143,27 @@
 	status = "okay";
 	clock-frequency = <I2C_BITRATE_FAST>;
 
+	icm20948@87 {
+		compatible = "invensense,icm20948";
+		reg = <0x68>;
+
+		int-gpios = <&gpioc 1 GPIO_ACTIVE_HIGH>;
+        /* Accelerometer configuration */
+        accel-fs = <2>;       /* Full scale in g: 2, 4, 8, 16 */
+        accel-hz = "102.3";   /* Sampling frequency in Hz */
+        accel-fchoice = <1>;  /* Accelerometer low-power filter toggle */
+        accel-lpf = <0>;      /* Accelerometer low pass filter config 0-7 */
+
+        /* Gyroscope configuration */
+        gyro-fs = <250>;      /* Full scale in DPS: 250, 500, 1000, 2000 */
+        gyro-hz = "102.3";    /* Sampling frequency in Hz */
+        gyro-fchoice = <1>;   /* Gyroscope low-power filter toggle */
+        gyro-lpf = <0>;       /* Gyroscope low pass filter config 0-7 */
+
+        /* Magnetometer configuration */
+        mag-freq = <100>;     /* Magnetometer frequency in Hz */
+		status = "okay";
+	};
 	lsm303agr_magn: lsm303agr-magn@1e {
 		compatible = "st,lis2mdl", "st,lsm303agr-magn";
 		status = "okay";
