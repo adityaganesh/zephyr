@@ -8,10 +8,14 @@
 #ifndef ZEPHYR_DRIVERS_SENSOR_ICM20948_H_
 #define ZEPHYR_DRIVERS_SENSOR_ICM20948_H_
 
+#include "icm20948_trigger.h"
+#include "icm20948_bus.h"
+#include "icm20948_decoder.h"
 /* Registers */
 
 /* User Bank 0 */
 #include "zephyr/drivers/i2c.h"
+#include "zephyr/drivers/gpio.h"
 #include <stdint.h>
 #define ICM20948_DEVICE_ID             0xEA
 #define ICM20948_REG_WHO_AM_I             0x00
@@ -69,6 +73,14 @@
 #define ICM20948_REG_EXT_SLV_SENS_DATA_21 0x50
 #define ICM20948_REG_EXT_SLV_SENS_DATA_22 0x51
 #define ICM20948_REG_EXT_SLV_SENS_DATA_23 0x52
+
+#define ICM20948_FIFO_RST 0x68
+#define ICM20948_REG_FIFO_R_W 0x72
+#define ICM20948_FIFO_MODE 0x69
+#define ICM20948_FIFO_CNTH 0x70
+#define ICM20948_FIFO_CNTL 0x71
+#define ICM20948_REG_FIFO_EN_2 0x67
+#define ICM20948_ACCEL_FIFO_EN 0x10
 
 #define ICM20948_INT1_ACTL 0x80
 #define ICM20948_INT1_OPEN 0x40
@@ -167,11 +179,20 @@ struct icm20948_data {
 	#ifdef CONFIG_ICM20948_TRIGGER
 		const struct device *dev;
 		struct gpio_callback gpio_cb;
-	#endif
 
-	K_KERNEL_STACK_MEMBER(thread_stack, CONFIG_ICM20948_THREAD_STACK_SIZE);
-	struct k_thread thread;
-	struct k_sem gpio_sem;
+	//#ifdef CONFIG_ICM20948_TRIGGER_OWN_THREAD
+		struct k_thread thread;
+		struct k_sem gpio_sem;
+		K_KERNEL_STACK_MEMBER(thread_stack, CONFIG_ICM20948_THREAD_STACK_SIZE);
+	//#endif
+	//#ifdef CONFIG_ICM20948_STREAM
+		struct rtio_iodev_sqe *streaming_sqe;
+		struct icm20948_bus bus;
+		struct icm20948_fifo_data fifo_data;
+		uint64_t timestamp;
+		atomic_t stream_state;
+	//#endif
+	#endif
 };
 
 struct icm20948_config {
@@ -214,8 +235,6 @@ enum ak09916_mode {
 	AK09916_MODE_SELF_TEST = 0x10,
 };
 
-#ifdef CONFIG_ICM20948_TRIGGER
-int icm20948_init_interrupt(const struct device *dev);
-#endif /* CONFIG_ICM20948_TRIGGER */
+
 
 #endif /* ZEPHYR_DRIVERS_SENSOR_ICM20948_H_ */

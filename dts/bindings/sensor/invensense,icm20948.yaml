@@ -46,7 +46,7 @@ properties:
     description: |
       Default frequency of accelerometer. (Unit - Hz)
       Maps to ACCEL_SMPLRT_DIV setting.
-    default: "102.3"
+    default: "1125.0"
     enum:
           - "0.27"
           - "0.55"
@@ -60,6 +60,9 @@ properties:
           - "70.3"
           - "102.3"
           - "140.6"
+          - "187.5"
+          - "281.3"
+          - "562.5"
 
 
   gyro-fchoice:

@@ -16,7 +16,9 @@
 #include "zephyr/init.h"
 #include "zephyr/logging/log.h"
 #include "zephyr/sys/__assert.h"
+#include "icm20948_rtio.h"
 #include "icm20948.h"
+
 #include <math.h>
 
 /* Created by Lazaro O'Farrill on 09/03/2023. */
@@ -275,8 +277,13 @@ static int icm20948_sample_fetch(const struct device *dev, enum sensor_channel c
 	return 0;
 }
 
-static const struct sensor_driver_api icm20948_driver_api = {.sample_fetch = icm20948_sample_fetch,
-							     .channel_get = icm20948_channel_get};
+static const struct sensor_driver_api icm20948_driver_api = {
+	.sample_fetch = icm20948_sample_fetch,
+	.channel_get = icm20948_channel_get,
+	#ifdef CONFIG_ICM20948_TRIGGER
+	.submit = icm20948_submit,
+	#endif
+};
 
 static int icm20948_wake_up(const struct device *dev)
 {
@@ -356,11 +363,11 @@ static int icm20948_accel_config(const struct device *dev)
 
 	/* Set acc sample rate divider */
 	const uint16_t sample_rate_dividers[] = {4095, 2044, 1022, 513, 255, 127,
-						 63,   31,   22,   15,  10,  7};
+						 63,   31,   22,   15,  10,  7 , 5 , 3, 1};
 	const uint8_t sample_rate_div[] = {
 		ICM20948_REG_ACCEL_SMPLRT_DIV_1,
 		sample_rate_dividers[cfg->accel_hz] >> 8,
-		sample_rate_dividers[cfg->accel_hz] & 0x0F,
+		sample_rate_dividers[cfg->accel_hz] & 0xFF,
 	};
 
 	err = i2c_write_dt(&cfg->i2c, sample_rate_div, 3);
@@ -544,6 +551,108 @@ static int icm20948_mag_config(const struct device *dev)
 	return 0;
 }
 
+static int icm20948_fifo_rst(const struct device *dev)
+{
+	const struct icm20948_config *cfg = dev->config;
+
+	uint8_t reg = 0;
+
+	/* Assert reset */
+	i2c_reg_read_byte_dt(&cfg->i2c,
+				ICM20948_FIFO_RST,
+				&reg);
+
+	reg &= 0xe0;
+
+	reg |= 0x1f;
+
+	/* Assert reset */
+	i2c_reg_write_byte_dt(&cfg->i2c,
+				ICM20948_FIFO_RST,
+				reg);
+
+	k_sleep(K_MSEC(1));
+
+	i2c_reg_read_byte_dt(&cfg->i2c,
+				ICM20948_FIFO_RST,
+				&reg);
+
+	reg &= 0xe0;
+
+	reg |= 0x1e;
+
+	/* Assert reset */
+	i2c_reg_write_byte_dt(&cfg->i2c,
+				ICM20948_FIFO_RST,
+				reg);
+
+}
+
+static int icm20948_fifo_mode(const struct device *dev, uint8_t mode)
+{
+	const struct icm20948_config *cfg = dev->config;
+
+	uint8_t reg = 0;
+
+	/* Set FIFO mode */
+	i2c_reg_read_byte_dt(&cfg->i2c,
+				ICM20948_FIFO_MODE,
+				&reg);
+
+	reg &= 0xe0;
+
+	reg |= (mode & 0x1f);
+
+	/* Set FIFO mode */
+	i2c_reg_write_byte_dt(&cfg->i2c,
+				ICM20948_FIFO_MODE,
+				reg);
+
+	return 0;
+}
+
+static int icm20948_fifo_configure(const struct device *dev)
+{
+	const struct icm20948_config *cfg = dev->config;
+
+	/*Select bank 0*/
+    int err = icm20948_bank_select(dev, 0);
+	if (err) {
+		return err;
+	}
+
+
+	icm20948_fifo_mode(dev, 0x1e);
+
+	icm20948_fifo_rst(dev);
+
+	/* Select accel/gyro data into FIFO */
+	uint8_t reg = 0;
+
+	i2c_reg_read_byte_dt(&cfg->i2c,
+			ICM20948_REG_FIFO_EN_2,
+			&reg);
+
+	reg &= 0xE0;
+
+	reg |= ICM20948_ACCEL_FIFO_EN;
+
+	i2c_reg_write_byte_dt(&cfg->i2c,
+				ICM20948_REG_FIFO_EN_2,
+				reg);
+
+
+				/* Enable FIFO engine */
+	i2c_reg_update_byte_dt(&cfg->i2c,
+				ICM20948_REG_USER_CTRL,
+				1<<6,
+				1<<6);
+
+
+	return 0;
+}
+
+
 static int icm20948_init(const struct device *dev)
 {
 	const struct icm20948_config *cfg = dev->config;
@@ -589,6 +698,30 @@ static int icm20948_init(const struct device *dev)
 	}
 
 	#ifdef CONFIG_ICM20948_TRIGGER
+	err = icm20948_bank_select(dev, 0);
+	if (err) {
+		return err;
+	}
+
+	uint8_t reg = 0;
+	/* Assert reset */
+	i2c_reg_read_byte_dt(&cfg->i2c,
+				ICM20948_REG_PWR_MGMT_2,
+				&reg);
+
+	reg &= 0xf8;
+
+	reg |= 0x07;
+
+	/* Assert reset */
+	i2c_reg_write_byte_dt(&cfg->i2c,
+				ICM20948_REG_PWR_MGMT_2,
+				reg);
+
+	err = icm20948_fifo_configure(dev);
+	if (err) {
+		return err;
+	}
 	err = icm20948_init_interrupt(dev);
 	if (err) {
 		return err;
@@ -600,9 +733,24 @@ static int icm20948_init(const struct device *dev)
 	return 0;
 }
 
-#define ICM2048_DEFINE(inst)                                                                       \
-	static struct icm20948_data icm20948_data_##inst;                                          \
-                                                                                                   \
+
+#define ICM20948_RTIO_DEFINE(inst)                                                                 \
+	I2C_DT_IODEV_DEFINE(icm20948_i2c_iodev_##inst, DT_DRV_INST(inst));       \
+	RTIO_DEFINE(icm20948_rtio_##inst, 32, 32);
+
+#define ICM2048_DEFINE(inst)                                                                    \
+																								\
+	IF_ENABLED(CONFIG_ICM20948_TRIGGER, (ICM20948_RTIO_DEFINE(inst)));                          \
+	static struct icm20948_data icm20948_data_##inst = {                                 \
+		IF_ENABLED(CONFIG_ICM20948_TRIGGER,						   \
+		(										   \
+			.bus = {								   \
+				.ctx = &icm20948_rtio_##inst,					   \
+				.iodev = &icm20948_i2c_iodev_##inst,				   \
+			},									   \
+		))										   \
+	};                  \
+                                                                                        		\
 	static const struct icm20948_config icm20948_config_##inst = {                             \
 		.i2c = I2C_DT_SPEC_INST_GET(inst),                                                 \
 		.accel_fs = DT_INST_ENUM_IDX(inst, accel_fs),                                      \

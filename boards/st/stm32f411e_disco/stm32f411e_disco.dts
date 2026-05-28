@@ -150,7 +150,7 @@
 		int-gpios = <&gpioc 1 GPIO_ACTIVE_HIGH>;
         /* Accelerometer configuration */
         accel-fs = <2>;       /* Full scale in g: 2, 4, 8, 16 */
-        accel-hz = "102.3";   /* Sampling frequency in Hz */
+        accel-hz = "562.5";   /* Sampling frequency in Hz */
         accel-fchoice = <1>;  /* Accelerometer low-power filter toggle */
         accel-lpf = <0>;      /* Accelerometer low pass filter config 0-7 */
 

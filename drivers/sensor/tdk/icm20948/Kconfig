@@ -14,6 +14,14 @@ menuconfig ICM20948
 
 if ICM20948
 
+config ICM20948_STREAM
+	bool "Use hardware fifo to stream data"
+	select ICM20948_TRIGGER
+	default y
+	depends on I2C_RTIO
+	depends on SENSOR_ASYNC_API
+
+
 
 config ICM20948_TRIGGER_GLOBAL_THREAD
 	bool "Use global thread"
@@ -28,10 +36,7 @@ config ICM20948_TRIGGER_OWN_THREAD
 	select ICM20948_TRIGGER
 
 config ICM20948_TRIGGER
-    bool "Enable ICM20948 trigger support"
-    help
-      Enable sensor trigger mode (DRDY interrupt, motion interrupt, etc.)
-      Requires the device tree node to define an interrupt.
+	bool
 
 config ICM20948_THREAD_PRIORITY
 	int "Thread priority"
